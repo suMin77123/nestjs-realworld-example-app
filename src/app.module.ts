@@ -9,6 +9,7 @@ import { CommentsModule } from './comments/comments.module';
 import { ProfilesModule } from './profiles/profiles.module';
 import { TagsModule } from './tags/tags.module';
 import { SharedModule } from './shared/shared.module';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SharedModule } from './shared/shared.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    DatabaseModule,
     UsersModule,
     AuthModule,
     ArticlesModule,

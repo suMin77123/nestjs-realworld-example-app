@@ -1,17 +1,22 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
+import { Injectable, UnauthorizedException, ConflictException, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
+import { UsersService } from '../users/users.service';
+import { LoginDto } from './dto/login-user.dto';
+import { CreateUserDto } from '../users/dto/create-user.dto';
+import { UserResponseDto } from '../users/dto/user-response.dto';
 import * as bcrypt from 'bcryptjs';
-import { UserResponseDto } from 'src/users/dto/user-response.dto';
-import { LoginDto } from 'src/auth/dto/login-user.dto';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async validateUser(email: string, password: string): Promise<UserResponseDto | null> {
@@ -60,6 +65,32 @@ export class AuthService {
         throw error;
       }
       throw new UnauthorizedException('Registration failed');
+    }
+  }
+
+  async logout(token: string): Promise<void> {
+    try {
+      const decoded: any = this.jwtService.decode(token);
+      if (decoded?.exp && typeof decoded.exp === 'number') {
+        const expiresAt = decoded.exp * 1000;
+        const currentTime = Date.now();
+        const ttl = Math.max(0, expiresAt - currentTime);
+
+        if (ttl > 0) {
+          await this.cacheManager.set(`blacklist:${token}`, 'true', ttl);
+        }
+      }
+    } catch (error) {
+      // 로그아웃 실패 시 무시
+    }
+  }
+
+  async isTokenBlacklisted(token: string): Promise<boolean> {
+    try {
+      const result = await this.cacheManager.get(`blacklist:${token}`);
+      return result === 'true';
+    } catch (error) {
+      return false;
     }
   }
 }
