@@ -18,11 +18,31 @@ async function bootstrap() {
     .setTitle('RealWorld API Swagger')
     .setDescription('RealWorld App Backend API')
     .setVersion('1.0')
-    .addTag('users')
+    .addTag('users', '사용자 관리 API')
+    .addTag('auth', '인증 및 권한 관리 API')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'JWT 토큰을 입력하세요 (Bearer 접두사 제외)',
+        name: 'Authorization',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document);
+  SwaggerModule.setup('api-docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+      docExpansion: 'list',
+      filter: true,
+      showRequestDuration: true,
+      tryItOutEnabled: true,
+    },
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }

@@ -3,8 +3,8 @@ import { Controller, Post, Body, UseGuards, Get, Request } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
-import { LoginDto } from '../users/dto/login-user.dto';
-import { UserResponseDto } from 'src/users/dto/user-response.dto';
+import { LoginDto } from './dto/login-user.dto';
+import { UserResponseDto } from '../users/dto/user-response.dto';
 import { Request as ExpressRequest } from 'express';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
