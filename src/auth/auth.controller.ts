@@ -115,4 +115,49 @@ export class AuthController {
   async getProfile(@Request() req: AuthenticatedRequest) {
     return req.user;
   }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: '사용자 로그아웃',
+    description: 'JWT 토큰을 무효화하여 로그아웃합니다.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '로그아웃 성공',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: '인증되지 않은 요청',
+  })
+  async logout(@Request() req: AuthenticatedRequest) {
+    const token = this.extractTokenFromHeader(req);
+    if (token) {
+      await this.authService.logout(token);
+    }
+    return { message: '로그아웃 되었습니다.' };
+  }
+
+  private extractTokenFromHeader(request: any): string | undefined {
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    return type === 'Bearer' ? token : undefined;
+  }
+
+  @Get('redis-test')
+  @ApiOperation({ summary: 'Redis 연결 테스트', description: 'Redis 연결 상태를 확인합니다.' })
+  async redisTest() {
+    try {
+      await this.authService.testRedisConnection();
+      return { status: 'success', message: 'Redis 연결 성공!' };
+    } catch (error) {
+      return { status: 'error', message: 'Redis 연결 실패', error: error.message };
+    }
+  }
 }
