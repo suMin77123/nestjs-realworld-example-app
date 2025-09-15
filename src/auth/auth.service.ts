@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable, UnauthorizedException, ConflictException, OnModuleInit } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -10,6 +7,13 @@ import { LoginDto } from './dto/login-user.dto';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { UserResponseDto } from '../users/dto/user-response.dto';
 import * as bcrypt from 'bcryptjs';
+
+interface JwtPayload {
+  email: string;
+  sub: number;
+  exp?: number;
+  iat?: number;
+}
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -63,7 +67,16 @@ export class AuthService implements OnModuleInit {
   async validateUser(email: string, password: string): Promise<UserResponseDto | null> {
     const user = await this.usersService.findByEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user;
+      const result = {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        bio: user.bio,
+        image: user.image,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+
       return result;
     }
     return null;
@@ -121,16 +134,18 @@ export class AuthService implements OnModuleInit {
 
   async logout(token: string): Promise<void> {
     try {
-      const decoded: any = this.jwtService.decode(token);
+      const decoded = this.jwtService.decode<JwtPayload>(token);
       if (decoded?.sub) {
         await this.removeUserTokens(decoded.sub);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error('💥 로그아웃 중 오류:', error);
+    }
   }
 
   async isTokenValid(token: string): Promise<boolean> {
     try {
-      const decoded: any = this.jwtService.decode(token);
+      const decoded = this.jwtService.decode<JwtPayload>(token);
       if (!decoded?.sub) {
         return false;
       }
@@ -151,7 +166,7 @@ export class AuthService implements OnModuleInit {
         return;
       }
 
-      const decoded: any = this.jwtService.decode(token);
+      const decoded = this.jwtService.decode<JwtPayload>(token);
       console.log('🔑 토큰 디코딩 결과:', { userId, decoded });
 
       if (decoded?.exp && typeof decoded.exp === 'number') {

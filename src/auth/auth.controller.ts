@@ -145,7 +145,7 @@ export class AuthController {
     return { message: '로그아웃 되었습니다.' };
   }
 
-  private extractTokenFromHeader(request: any): string | undefined {
+  private extractTokenFromHeader(request: ExpressRequest): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
   }
@@ -156,8 +156,11 @@ export class AuthController {
     try {
       await this.authService.testRedisConnection();
       return { status: 'success', message: 'Redis 연결 성공!' };
-    } catch (error) {
-      return { status: 'error', message: 'Redis 연결 실패', error: error.message };
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return { status: 'error', message: 'Redis 연결 실패', error: error.message };
+      }
+      return { status: 'error', message: 'Redis 연결 실패', error: '알 수 없는 오류' };
     }
   }
 }
