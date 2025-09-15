@@ -2,6 +2,12 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ProfileResponseDto {
   @ApiProperty({
+    description: '사용자 ID',
+    example: 1,
+  })
+  id: number;
+
+  @ApiProperty({
     description: '사용자명',
     example: 'jake',
   })
@@ -24,4 +30,16 @@ export class ProfileResponseDto {
     example: false,
   })
   following: boolean;
+
+  @ApiProperty({
+    description: '프로필 생성 시간',
+    example: '2024-01-01T00:00:00.000Z',
+  })
+  createdAt: Date;
+
+  @ApiProperty({
+    description: '프로필 수정 시간',
+    example: '2024-01-01T00:00:00.000Z',
+  })
+  updatedAt: Date;
 }
