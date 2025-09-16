@@ -12,12 +12,24 @@ export class ProfilesService {
   ) {}
 
   async getProfile(username: string): Promise<ProfileResponseDto> {
-    const profile = await this.profilesRepository.findOne({ where: { username } });
+    const profile = await this.profilesRepository
+      .createQueryBuilder('profile')
+      .leftJoinAndSelect('profile.user', 'user')
+      .where('user.username = :username', { username })
+      .getOne();
 
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }
 
-    return profile;
+    return {
+      id: profile.id,
+      username: profile.user.username,
+      bio: profile.bio,
+      image: profile.image,
+      following: profile.following,
+      createdAt: profile.createdAt,
+      updatedAt: profile.updatedAt,
+    };
   }
 }

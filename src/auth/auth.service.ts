@@ -71,8 +71,8 @@ export class AuthService implements OnModuleInit {
         id: user.id,
         email: user.email,
         username: user.username,
-        bio: user.bio,
-        image: user.image,
+        bio: user.profile.bio,
+        image: user.profile.image,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       };

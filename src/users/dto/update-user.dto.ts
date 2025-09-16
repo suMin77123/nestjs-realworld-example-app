@@ -28,20 +28,4 @@ export class UpdateUserDto {
   @IsString()
   @MinLength(8)
   password?: string;
-
-  @ApiPropertyOptional({
-    description: '사용자 자기소개',
-    example: 'I work at statefarm',
-  })
-  @IsOptional()
-  @IsString()
-  bio?: string;
-
-  @ApiPropertyOptional({
-    description: '프로필 이미지 URL',
-    example: 'https://example.com/avatar.jpg',
-  })
-  @IsOptional()
-  @IsString()
-  image?: string;
 }

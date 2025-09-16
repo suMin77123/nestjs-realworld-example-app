@@ -1,7 +1,9 @@
+import { User } from 'src/users/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -11,9 +13,6 @@ export class Profile {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true, length: 255 })
-  username: string;
-
   @Column({ type: 'text', nullable: true })
   bio: string;
 
@@ -22,6 +21,9 @@ export class Profile {
 
   @Column({ type: 'boolean', default: false })
   following: boolean;
+
+  @OneToOne(() => User, (user) => user.profile)
+  user: User;
 
   @CreateDateColumn()
   createdAt: Date;

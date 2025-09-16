@@ -6,6 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './user.entity';
 import { UserResponseDto } from './dto/user-response.dto';
+import { Profile } from 'src/profiles/profile.entity';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -32,18 +33,26 @@ export class UsersService {
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
+    const newProfile = new Profile();
+    newProfile.bio = '';
+    newProfile.image = '';
+    newProfile.following = false;
+
     const newUser = this.usersRepository.create({
       email: createUserDto.email,
       username: createUserDto.username,
       password: hashedPassword,
-      bio: '',
-      image: '',
+      profile: newProfile,
     });
 
     const savedUser = await this.usersRepository.save(newUser);
 
     const { password, ...userResponse } = savedUser;
-    return userResponse;
+    return {
+      ...userResponse,
+      bio: savedUser.profile.bio,
+      image: savedUser.profile.image,
+    };
   }
 
   async findAll(): Promise<UserResponseDto[]> {
@@ -79,12 +88,6 @@ export class UsersService {
     }
     if (updateUserDto.username) {
       user.username = updateUserDto.username;
-    }
-    if (updateUserDto.bio !== undefined) {
-      user.bio = updateUserDto.bio;
-    }
-    if (updateUserDto.image !== undefined) {
-      user.image = updateUserDto.image;
     }
     if (updateUserDto.password) {
       user.password = await bcrypt.hash(updateUserDto.password, 10);

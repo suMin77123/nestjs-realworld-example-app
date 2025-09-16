@@ -1,9 +1,12 @@
+import { Profile } from 'src/profiles/profile.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity('users')
@@ -20,11 +23,12 @@ export class User {
   @Column({ length: 255 })
   password: string;
 
-  @Column({ type: 'text', nullable: true })
-  bio: string;
-
-  @Column({ type: 'text', nullable: true })
-  image: string;
+  @OneToOne(() => Profile, (profile) => profile.user, {
+    cascade: true,
+    eager: true,
+  })
+  @JoinColumn()
+  profile: Profile;
 
   @CreateDateColumn()
   createdAt: Date;
