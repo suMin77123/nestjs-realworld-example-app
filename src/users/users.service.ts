@@ -6,7 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './user.entity';
 import { UserResponseDto } from './dto/user-response.dto';
-import { Profile } from 'src/profiles/profile.entity';
+import { Profile } from '../profiles/profile.entity';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -14,6 +14,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(Profile)
+    private profilesRepository: Repository<Profile>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
@@ -33,9 +35,10 @@ export class UsersService {
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
-    const newProfile = new Profile();
-    newProfile.bio = '';
-    newProfile.image = '';
+    const newProfile = this.profilesRepository.create({
+      bio: '',
+      image: '',
+    });
 
     const newUser = this.usersRepository.create({
       email: createUserDto.email,
@@ -99,11 +102,36 @@ export class UsersService {
   }
 
   async remove(id: number): Promise<void> {
-    const user = await this.usersRepository.findOne({ where: { id } });
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['profile', 'following', 'followers'],
+    });
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
+    if (user.following && user.following.length > 0) {
+      await this.usersRepository
+        .createQueryBuilder()
+        .relation(User, 'following')
+        .of(user)
+        .remove(user.following);
+    }
+
+    if (user.followers && user.followers.length > 0) {
+      for (const follower of user.followers) {
+        await this.usersRepository
+          .createQueryBuilder()
+          .relation(User, 'following')
+          .of(follower)
+          .remove(user);
+      }
+    }
+
     await this.usersRepository.remove(user);
+
+    if (user.profile) {
+      await this.profilesRepository.remove(user.profile);
+    }
   }
 }
