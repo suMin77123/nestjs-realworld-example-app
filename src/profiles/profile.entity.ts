@@ -19,9 +19,6 @@ export class Profile {
   @Column({ type: 'text', nullable: true })
   image: string;
 
-  @Column({ type: 'boolean', default: false })
-  following: boolean;
-
   @OneToOne(() => User, (user) => user.profile)
   user: User;
 
