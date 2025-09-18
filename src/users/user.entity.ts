@@ -7,6 +7,8 @@ import {
   UpdateDateColumn,
   OneToOne,
   JoinColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 
 @Entity('users')
@@ -29,6 +31,23 @@ export class User {
   })
   @JoinColumn()
   profile: Profile;
+
+  @ManyToMany(() => User, (user) => user.followers)
+  @JoinTable({
+    name: 'user_follows',
+    joinColumn: {
+      name: 'follower_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'following_id',
+      referencedColumnName: 'id',
+    },
+  })
+  following: User[];
+
+  @ManyToMany(() => User, (user) => user.following)
+  followers: User[];
 
   @CreateDateColumn()
   createdAt: Date;
