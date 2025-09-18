@@ -36,7 +36,6 @@ export class UsersService {
     const newProfile = new Profile();
     newProfile.bio = '';
     newProfile.image = '';
-    newProfile.following = false;
 
     const newUser = this.usersRepository.create({
       email: createUserDto.email,
